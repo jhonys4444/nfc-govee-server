@@ -36,23 +36,17 @@ def set_light(device, state):
 
     requests.post(url, json=payload, headers=headers)
 
-@app.route("/cuarto_cami")
+@app.route("/on")
 def cuarto_cami():
     for d in devices:
         set_light(d, 1)
     return "Cuarto Cami ON"
 
-@app.route("/dormir")
+@app.route("/off")
 def dormir():
     for d in devices:
         set_light(d, 0)
     return "Dormir ON"
-
-@app.route("/gaming")
-def gaming():
-    for d in devices:
-        set_light(d, 1)
-    return "Gaming ON"
 
 if __name__ == "__main__":
     app.run()
