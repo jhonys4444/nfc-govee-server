@@ -31,23 +31,30 @@ scenes = [
 def set_light(device, r, g, b, bri):
     url = "https://openapi.api.govee.com/router/api/v1/device/control"
 
-    requests.post(url, json={
+    rgb_value = (r << 16) + (g << 8) + b  # conversión a int
+
+    payload_rgb = {
+        "requestId": "nfc-render",
         "device": device,
         "model": "H6008",
         "cmd": {
-            "name": "color",
-            "value": {"r": r, "g": g, "b": b}
+            "name": "colorRgb",
+            "value": rgb_value
         }
-    }, headers=headers)
+    }
 
-    requests.post(url, json={
+    payload_bri = {
+        "requestId": "nfc-render",
         "device": device,
         "model": "H6008",
         "cmd": {
             "name": "brightness",
             "value": bri
         }
-    }, headers=headers)
+    }
+
+    requests.post(url, json=payload_rgb, headers=headers)
+    requests.post(url, json=payload_bri, headers=headers)
 
 
 # ---------------- NFC 1: ROTAR ESCENAS ----------------
