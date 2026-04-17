@@ -18,41 +18,63 @@ devices = [
     "8C:57:98:17:3C:6F:FD:E4"
 ]
 
-def set_light(device, state):
+# 🔥 estado global (en Render es temporal, pero funciona para esto)
+current_scene = 0
+
+scenes = [
+    {"r": 0, "g": 0, "b": 255, "bri": 100},   # gaming
+    {"r": 255, "g": 200, "b": 150, "bri": 70}, # cuarto cami
+    {"r": 255, "g": 80, "b": 0, "bri": 10},    # dormir
+]
+
+
+def set_light(device, r, g, b, bri):
     url = "https://openapi.api.govee.com/router/api/v1/device/control"
 
-    payload = {
-        "requestId": "nfc-render",
-        "payload": {
-            "sku": "H6008",
-            "device": device,
-            "capability": {
-                "type": "devices.capabilities.on_off",
-                "instance": "powerSwitch",
-                "value": 1 if state else 0
-            }
+    requests.post(url, json={
+        "device": device,
+        "model": "H6008",
+        "cmd": {
+            "name": "color",
+            "value": {"r": r, "g": g, "b": b}
         }
-    }
+    }, headers=headers)
 
-    requests.post(url, json=payload, headers=headers)
+    requests.post(url, json={
+        "device": device,
+        "model": "H6008",
+        "cmd": {
+            "name": "brightness",
+            "value": bri
+        }
+    }, headers=headers)
 
-@app.route("/cuarto_cami")
-def cuarto_cami():
+
+# ---------------- NFC 1: ROTAR ESCENAS ----------------
+
+@app.route("/next")
+def next_scene():
+    global current_scene
+
+    scene = scenes[current_scene]
+
     for d in devices:
-        set_light(d, 1)
-    return "Cuarto Cami ON"
+        set_light(d, scene["r"], scene["g"], scene["b"], scene["bri"])
 
-@app.route("/dormir")
-def dormir():
-    for d in devices:
-        set_light(d, 0)
-    return "Dormir ON"
+    current_scene = (current_scene + 1) % len(scenes)
 
-@app.route("/gaming")
-def gaming():
+    return f"Scene {current_scene} activated"
+
+
+# ---------------- NFC 2: OFF ----------------
+
+@app.route("/off")
+def off():
     for d in devices:
-        set_light(d, 1)
-    return "Gaming ON"
+        set_light(d, 0, 0, 0, 0)
+
+    return "All OFF"
+
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=10000)
