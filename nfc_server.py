@@ -39,9 +39,9 @@ def set_light(device, state):
     requests.post(url, json=payload, headers=headers)
 
 
-# 🔒 función de seguridad
 def check_key():
-    return request.args.get("key") == SECRET_KEY
+    key = request.args.get("key", "")
+    return key and key == SECRET_KEY
 
 
 @app.route("/on")
