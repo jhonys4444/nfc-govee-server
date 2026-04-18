@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, request
 import requests
 import os
 
 app = Flask(__name__)
 
 API_KEY = os.environ.get("GOVEE_API_KEY")
+
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 headers = {
     "Govee-API-Key": API_KEY,
@@ -36,17 +38,33 @@ def set_light(device, state):
 
     requests.post(url, json=payload, headers=headers)
 
+
+# 🔒 función de seguridad
+def check_key():
+    return request.args.get("key") == SECRET_KEY
+
+
 @app.route("/on")
-def cuarto_cami():
+def on():
+    if not check_key():
+        return "unauthorized", 403
+
     for d in devices:
         set_light(d, 1)
-    return "Cuarto Cami ON"
+
+    return "ON OK"
+
 
 @app.route("/off")
-def dormir():
+def off():
+    if not check_key():
+        return "unauthorized", 403
+
     for d in devices:
         set_light(d, 0)
-    return "Dormir ON"
+
+    return "OFF OK"
+
 
 if __name__ == "__main__":
     app.run()
